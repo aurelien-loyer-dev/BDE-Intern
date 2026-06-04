@@ -1018,7 +1018,7 @@ export default function App() {
           description: event.description,
           price: event.entryPrice,
           extra_prices: event.extraPrices,
-          places: event.places,
+          places: event.places > 0 ? event.places : null,
           visibility: event.visibility,
           schedule: event.schedule,
           activities: event.activities,
