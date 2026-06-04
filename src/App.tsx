@@ -347,10 +347,6 @@ function HomeView({ onNavigate }: { onNavigate: (next: View) => void }) {
       <div className="wrap">
         <div className="eyebrow">Tools</div>
         <div className="tools-grid">
-          <button className="tool-card" type="button" onClick={() => onNavigate("planning")}>
-            <span className="tool-card-icon"><Icon name="calendar" /></span>
-            <span className="tool-card-label">Planning événements</span>
-          </button>
           <button className="tool-card" type="button" onClick={() => onNavigate("create")}>
             <span className="tool-card-icon"><Icon name="plus" /></span>
             <span className="tool-card-label">Créer un événement</span>
@@ -361,7 +357,7 @@ function HomeView({ onNavigate }: { onNavigate: (next: View) => void }) {
   );
 }
 
-function PlanningView({ events, filter, onFilterChange, onOpenEvent, onNavigate, shortDateFormatter }: { events: EventRecord[]; filter: "all" | Visibility; onFilterChange: (next: "all" | Visibility) => void; onOpenEvent: (id: string) => void; onNavigate: (next: View) => void; shortDateFormatter: Intl.DateTimeFormat; }) {
+function PlanningView({ events, filter, onFilterChange, onOpenEvent, shortDateFormatter }: { events: EventRecord[]; filter: "all" | Visibility; onFilterChange: (next: "all" | Visibility) => void; onOpenEvent: (id: string) => void; shortDateFormatter: Intl.DateTimeFormat; }) {
   const filters: Array<{ id: "all" | Visibility; label: string }> = [
     { id: "all", label: "Tous" },
     { id: "public", label: "Public" },
@@ -379,23 +375,18 @@ function PlanningView({ events, filter, onFilterChange, onOpenEvent, onNavigate,
             <h2>Planning des événements</h2>
           </div>
 
-          <div className="planning-actions">
-            <div className="filters" role="tablist" aria-label="Filtres d'événements">
-              {filters.map((item) => (
-                <button
-                  key={item.id}
-                  className={`pill ${filter === item.id ? "active" : ""}`}
-                  type="button"
-                  onClick={() => onFilterChange(item.id)}
-                  aria-pressed={filter === item.id}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <button className="btn btn-primary btn-small" type="button" onClick={() => onNavigate("create")}>
-              <Icon name="plus" /> Créer un événement
-            </button>
+          <div className="filters" role="tablist" aria-label="Filtres d'événements">
+            {filters.map((item) => (
+              <button
+                key={item.id}
+                className={`pill ${filter === item.id ? "active" : ""}`}
+                type="button"
+                onClick={() => onFilterChange(item.id)}
+                aria-pressed={filter === item.id}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -1097,7 +1088,6 @@ export default function App() {
           filter={filter}
           onFilterChange={setFilter}
           onOpenEvent={openEvent}
-          onNavigate={navigate}
           shortDateFormatter={formatters.shortDate}
         />
       ) : null}
