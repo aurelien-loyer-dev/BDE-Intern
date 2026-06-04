@@ -90,7 +90,7 @@ function createId() {
   return String(Date.now());
 }
 
-function Icon({ name }: { name: "calendar" | "clock" | "pin" | "users" | "euro" | "back" | "plus" | "trash" | "close" | "arrow" }) {
+function Icon({ name }: { name: "calendar" | "clock" | "pin" | "users" | "euro" | "back" | "plus" | "trash" | "close" }) {
   const common = {
     width: 16,
     height: 16,
@@ -169,13 +169,6 @@ function Icon({ name }: { name: "calendar" | "clock" | "pin" | "users" | "euro" 
         <svg {...common}>
           <path d="M6 6l12 12" />
           <path d="M18 6L6 18" />
-        </svg>
-      );
-    case "arrow":
-      return (
-        <svg {...common}>
-          <path d="M5 12h14" />
-          <path d="M13 6l6 6-6 6" />
         </svg>
       );
     default:

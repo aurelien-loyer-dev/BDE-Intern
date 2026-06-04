@@ -1,6 +1,5 @@
 :root {
   --bg: #0f0f0f;
-  --bg-elevated: #161616;
   --surface: #1a1a1a;
   --surface-strong: #222222;
   --border: #2a2a2a;
@@ -61,8 +60,7 @@ legend,
 .brand-name,
 .card-date,
 .eyebrow,
-.page-kicker,
-.stat-value {
+.page-kicker {
   font-family: "Space Grotesk", system-ui, sans-serif;
 }
 
@@ -88,6 +86,8 @@ a {
   display: flex;
   flex-direction: column;
 }
+
+/* ─── Nav ─── */
 
 .nav {
   position: sticky;
@@ -178,9 +178,7 @@ a {
   font-weight: 600;
 }
 
-.nav-cta {
-  margin-left: 8px;
-}
+/* ─── Buttons ─── */
 
 .btn {
   display: inline-flex;
@@ -221,80 +219,7 @@ a {
   font-size: 13.5px;
 }
 
-.hero {
-  padding: 86px 0 60px;
-  border-bottom: 1px solid var(--border);
-}
-
-.hero-grid {
-  display: grid;
-  grid-template-columns: 1.3fr 0.8fr;
-  gap: 28px;
-  align-items: start;
-}
-
-.hero-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  padding: 6px 13px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 22px;
-}
-
-.hero h1 {
-  max-width: 14ch;
-  font-size: clamp(40px, 6vw, 54px);
-  line-height: 1.04;
-  letter-spacing: -0.03em;
-}
-
-.hero p {
-  max-width: 60ch;
-  margin-top: 18px;
-  font-size: 18px;
-  color: var(--muted);
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 30px;
-}
-
-.hero-aside {
-  display: grid;
-  gap: 14px;
-}
-
-.stat-card {
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent), var(--surface);
-  border-radius: var(--radius);
-  padding: 20px;
-}
-
-.stat-card-soft {
-  background: linear-gradient(180deg, rgba(124, 116, 232, 0.12), transparent), var(--surface);
-}
-
-.stat-value {
-  display: block;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.stat-label {
-  display: block;
-  margin-top: 6px;
-  color: var(--muted);
-}
+/* ─── Layout ─── */
 
 .block {
   padding: 56px 0;
@@ -325,15 +250,54 @@ a {
   margin-bottom: 8px;
 }
 
-.grid-3,
-.list-grid {
+/* ─── Tools grid ─── */
+
+.tools-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
 }
 
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: left;
+  color: var(--text);
+}
+
+.tool-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft-2);
+}
+
+.tool-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+}
+
+.tool-card-label {
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+/* ─── Event cards ─── */
+
 .list-grid {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .event-card {
@@ -396,9 +360,7 @@ a {
   font-weight: 600;
 }
 
-.spots.low {
-  color: var(--danger);
-}
+/* ─── Badges ─── */
 
 .badge {
   display: inline-flex;
@@ -434,12 +396,7 @@ a {
   background: #666666;
 }
 
-.planning-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+/* ─── Filters ─── */
 
 .filters {
   display: flex;
@@ -464,8 +421,10 @@ a {
 
 .pill.active {
   background: var(--accent);
-  color: #fff;
+  color: #07091a;
 }
+
+/* ─── Empty states ─── */
 
 .empty-state,
 .empty-inline {
@@ -481,6 +440,8 @@ a {
   padding: 18px;
   text-align: left;
 }
+
+/* ─── Event detail ─── */
 
 .detail-head {
   padding: 40px 0 32px;
@@ -531,6 +492,8 @@ a {
 .prose p {
   color: var(--muted);
 }
+
+/* ─── Timeline / Planning ─── */
 
 .timeline {
   display: flex;
@@ -598,90 +561,25 @@ a {
   color: var(--muted);
 }
 
+/* ─── Activities ─── */
+
 .activities-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .activity-chip {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border: 1px solid rgba(124, 116, 232, 0.3);
-  border-radius: 999px;
-  padding: 8px 18px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.extra-prices {
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-  margin-top: 2px;
-  margin-bottom: 4px;
-}
-
-.extra-price-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 0;
-  font-size: 13.5px;
-}
-
-.extra-price-label {
-  color: var(--muted);
-}
-
-.extra-price-amount {
-  font-weight: 600;
-  color: var(--text);
-}
-
-.tags,
-.tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-}
-
-.tag,
-.tag-removable {
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 600;
-}
-
-.tag {
   background: var(--accent-soft-2);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 8px 14px;
-}
-
-.tag-removable {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  padding: 7px 8px 7px 13px;
-}
-
-.tag-removable button {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  display: grid;
-  place-items: center;
-  padding: 2px;
   border-radius: 999px;
-  opacity: 0.75;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.tag-removable button:hover {
-  opacity: 1;
-}
+/* ─── Info card ─── */
 
 .info-card {
   position: sticky;
@@ -733,6 +631,30 @@ a {
   color: var(--accent);
 }
 
+.extra-prices {
+  border-top: 1px solid var(--border);
+  padding: 8px 0 4px;
+}
+
+.extra-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.extra-price-label {
+  font-size: 13px;
+  color: var(--muted);
+  padding-left: 46px;
+}
+
+.extra-price-amount {
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .detail-cta {
   margin-top: 18px;
 }
@@ -742,6 +664,63 @@ a {
   color: var(--muted);
   font-size: 12.5px;
 }
+
+/* ─── Registration ─── */
+
+.register-form {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.register-form .field {
+  margin-bottom: 10px;
+}
+
+.register-form .field-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.register-success {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.register-success-check {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(80, 200, 120, 0.15);
+  border: 1px solid rgba(80, 200, 120, 0.35);
+  color: #50c878;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex: none;
+}
+
+.register-success-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.register-success-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ─── Create form ─── */
 
 .form-shell {
   padding: 40px 28px 80px;
@@ -915,14 +894,6 @@ a {
   white-space: nowrap;
 }
 
-.step-row {
-  display: grid;
-  grid-template-columns: 120px minmax(0, 1fr) 40px;
-  gap: 10px;
-  margin-bottom: 10px;
-  align-items: center;
-}
-
 .icon-button {
   width: 38px;
   height: 38px;
@@ -951,6 +922,40 @@ a {
 
 .tag-input-row .input {
   flex: 1;
+}
+
+.tags,
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.tag-removable {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 7px 8px 7px 13px;
+}
+
+.tag-removable button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border-radius: 999px;
+  opacity: 0.75;
+}
+
+.tag-removable button:hover {
+  opacity: 1;
 }
 
 .form-actions {
@@ -986,6 +991,8 @@ a {
   color: var(--accent);
 }
 
+/* ─── Footer ─── */
+
 .footer {
   margin-top: auto;
   border-top: 1px solid var(--border);
@@ -997,6 +1004,8 @@ a {
   gap: 16px;
   font-size: 13px;
 }
+
+/* ─── Auth ─── */
 
 .auth-shell {
   min-height: 100vh;
@@ -1034,163 +1043,10 @@ a {
   font-size: 14px;
 }
 
-/* ─── Tools grid ─── */
-.tools-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.tool-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  text-align: left;
-  color: var(--text);
-}
-
-.tool-card:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft-2);
-}
-
-.tool-card-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-}
-
-.tool-card-label {
-  font-weight: 600;
-  font-size: 14.5px;
-}
-
-/* ─── Timeline titles ─── */
-.timeline-title {
-  color: var(--text);
-  font-weight: 600;
-  font-size: 14.5px;
-  margin: 0;
-}
-
-.timeline-desc {
-  color: var(--muted);
-  font-size: 13.5px;
-  margin: 3px 0 0;
-}
-
-/* ─── Activities ─── */
-.activities-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.activity-chip {
-  background: var(--accent-soft-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* ─── Extra prices (detail view) ─── */
-.extra-prices {
-  border-top: 1px solid var(--border);
-  padding: 8px 0 4px;
-}
-
-.extra-price-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 5px 0;
-}
-
-.extra-price-label {
-  font-size: 13px;
-  color: var(--muted);
-  padding-left: 46px;
-}
-
-.extra-price-amount {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* ─── Registration form ─── */
-.register-form {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.register-form .field {
-  margin-bottom: 10px;
-}
-
-.register-form .field-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-/* ─── Registration success ─── */
-.register-success {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.register-success-check {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(80, 200, 120, 0.15);
-  border: 1px solid rgba(80, 200, 120, 0.35);
-  color: #50c878;
-  display: grid;
-  place-items: center;
-  font-size: 16px;
-  font-weight: 700;
-  flex: none;
-}
-
-.register-success-title {
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.register-success-sub {
-  margin-top: 2px;
-  font-size: 12.5px;
-  color: var(--muted);
-}
+/* ─── Responsive ─── */
 
 @media (max-width: 920px) {
-  .hero-grid,
   .detail-grid,
-  .grid-3,
   .list-grid,
   .field-row,
   .field-row-3 {
@@ -1206,10 +1062,6 @@ a {
     position: static;
   }
 
-  .hero {
-    padding-top: 70px;
-  }
-
   .section-head,
   .footer,
   .nav-inner {
@@ -1222,13 +1074,8 @@ a {
     justify-content: flex-start;
   }
 
-  .nav-cta {
-    margin-left: 0;
-  }
-
   .field-row,
   .field-row-3,
-  .step-row,
   .tag-input-row,
   .segmented-control,
   .price-row {
@@ -1238,10 +1085,6 @@ a {
 
   .schedule-card-header {
     grid-template-columns: 80px minmax(0, 1fr) 40px;
-  }
-
-  .step-row {
-    gap: 8px;
   }
 }
 
@@ -1260,14 +1103,9 @@ a {
     padding: 28px 22px;
   }
 
-  .hero p {
-    font-size: 16px;
-  }
-
   .event-card,
   .fieldset,
-  .info-card,
-  .stat-card {
+  .info-card {
     padding: 18px;
   }
 }
