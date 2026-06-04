@@ -749,7 +749,7 @@ function CreateEventView({
 
         <div className="field">
           <FieldLabel>Lieu</FieldLabel>
-          <input className="input" value={form.location} onChange={(event) => updateField("location", event.target.value)} placeholder="Campus Epitech, Sainte-Clotilde" />
+          <input className="input" value={form.location} onChange={(event) => updateField("location", event.target.value)} placeholder="Campus Epitech, Saint-André" />
         </div>
 
         <div className="field">
