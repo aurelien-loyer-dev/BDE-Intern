@@ -951,6 +951,7 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 9px;
+  margin-top: 14px;
 }
 
 .tag-removable {
