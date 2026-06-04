@@ -434,6 +434,13 @@ a {
   background: #666666;
 }
 
+.planning-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .filters {
   display: flex;
   gap: 8px;
