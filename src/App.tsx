@@ -334,7 +334,6 @@ function Navbar({ view, onNavigate, onLogout }: { view: View; onNavigate: (next:
               {item.label}
             </button>
           ))}
-          <button className="btn btn-primary nav-cta" type="button" onClick={() => onNavigate("create")}>Créer un événement</button>
           <button className="nav-link" type="button" onClick={onLogout}>Déconnexion</button>
         </nav>
       </div>
@@ -342,67 +341,19 @@ function Navbar({ view, onNavigate, onLogout }: { view: View; onNavigate: (next:
   );
 }
 
-function HomeView({ eventCount, featuredEvents, onOpenEvent, onNavigate, shortDateFormatter }: { eventCount: number; featuredEvents: EventRecord[]; onOpenEvent: (id: string) => void; onNavigate: (next: View) => void; shortDateFormatter: Intl.DateTimeFormat; }) {
+function HomeView({ onNavigate }: { onNavigate: (next: View) => void }) {
   return (
-    <>
-      <section className="hero">
-        <div className="wrap hero-grid">
-          <div>
-            <span className="hero-tag">Bureau Des Étudiants · Epitech Réunion</span>
-            <h1>Le planning du BDE, clair, rapide et réservé aux membres.</h1>
-            <p>
-              Le site centralise la connexion interne, la consultation des événements et la création d&apos;un nouveau rendez-vous avec son déroulé et ses activités.
-            </p>
-
-            <div className="hero-actions">
-              <button className="btn btn-primary" type="button" onClick={() => onNavigate("planning")}>
-                Voir le planning <Icon name="arrow" />
-              </button>
-              <button className="btn" type="button" onClick={() => onNavigate("create")}>
-                Proposer un événement
-              </button>
-            </div>
-          </div>
-
-          <aside className="hero-aside">
-            <div className="stat-card">
-              <span className="stat-value">{eventCount}</span>
-              <span className="stat-label">événement(s) en base</span>
-            </div>
-            <div className="stat-card stat-card-soft">
-              <span className="stat-value">Espace membre</span>
-              <span className="stat-label">accès réservé</span>
-            </div>
-          </aside>
+    <section className="block">
+      <div className="wrap">
+        <div className="eyebrow">Tools</div>
+        <div className="tools-grid">
+          <button className="tool-card" type="button" onClick={() => onNavigate("planning")}>
+            <span className="tool-card-icon"><Icon name="calendar" /></span>
+            <span className="tool-card-label">Planning événements</span>
+          </button>
         </div>
-      </section>
-
-      <section className="block">
-        <div className="wrap">
-          <div className="section-head">
-            <div>
-              <div className="eyebrow">À ne pas manquer</div>
-              <h2>Les prochains événements</h2>
-            </div>
-            <button className="btn btn-small" type="button" onClick={() => onNavigate("planning")}>
-              Tout voir
-            </button>
-          </div>
-
-          {featuredEvents.length > 0 ? (
-            <div className="grid-3">
-              {featuredEvents.map((event) => (
-                <EventCard key={event.id} event={event} shortDateFormatter={shortDateFormatter} onOpen={() => onOpenEvent(event.id)} />
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              Aucun événement pour le moment. Créez le premier rendez-vous du BDE depuis le formulaire.
-            </div>
-          )}
-        </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
 
@@ -1128,13 +1079,7 @@ export default function App() {
       ) : null}
 
       {view === "home" ? (
-        <HomeView
-          eventCount={events.length}
-          featuredEvents={sortedEvents.slice(0, 3)}
-          onOpenEvent={openEvent}
-          onNavigate={navigate}
-          shortDateFormatter={formatters.shortDate}
-        />
+        <HomeView onNavigate={navigate} />
       ) : null}
 
       {view === "planning" ? (
