@@ -90,7 +90,7 @@ function createId() {
   return String(Date.now());
 }
 
-function Icon({ name }: { name: "calendar" | "clock" | "pin" | "users" | "euro" | "back" | "plus" | "trash" | "close" }) {
+function Icon({ name }: { name: "calendar" | "clock" | "pin" | "users" | "euro" | "back" | "plus" | "trash" | "close" | "edit" }) {
   const common = {
     width: 16,
     height: 16,
@@ -169,6 +169,13 @@ function Icon({ name }: { name: "calendar" | "clock" | "pin" | "users" | "euro" 
         <svg {...common}>
           <path d="M6 6l12 12" />
           <path d="M18 6L6 18" />
+        </svg>
+      );
+    case "edit":
+      return (
+        <svg {...common}>
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
         </svg>
       );
     default:
@@ -397,7 +404,7 @@ function PlanningView({ events, filter, onFilterChange, onOpenEvent, shortDateFo
   );
 }
 
-function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRecord | undefined; onBack: () => void; longDateFormatter: Intl.DateTimeFormat; }) {
+function EventDetailView({ event, onBack, onEdit, onDelete, longDateFormatter }: { event: EventRecord | undefined; onBack: () => void; onEdit: (event: EventRecord) => void; onDelete: (id: string) => void; longDateFormatter: Intl.DateTimeFormat; }) {
   const [showRegister, setShowRegister] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [registering, setRegistering] = useState(false);
@@ -443,9 +450,19 @@ function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRec
     <>
       <section className="detail-head">
         <div className="wrap">
-          <button className="back-link" type="button" onClick={onBack}>
-            <Icon name="back" /> Retour au planning
-          </button>
+          <div className="detail-head-top">
+            <button className="back-link" type="button" onClick={onBack}>
+              <Icon name="back" /> Retour au planning
+            </button>
+            <div className="detail-head-actions">
+              <button className="btn btn-small" type="button" onClick={() => onEdit(event)}>
+                <Icon name="edit" /> Modifier
+              </button>
+              <button className="btn btn-small btn-danger" type="button" onClick={() => { if (window.confirm("Supprimer cet événement ?")) onDelete(event.id); }}>
+                <Icon name="trash" /> Supprimer
+              </button>
+            </div>
+          </div>
 
           <div className="detail-meta-row">
             <Badge visibility={event.visibility} />
@@ -558,16 +575,35 @@ function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRec
 
 function CreateEventView({
   onCreate,
+  onUpdate,
   onCancel,
   saving,
+  existingEvent,
 }: {
-  onCreate: (event: EventRecord) => Promise<void>;
+  onCreate?: (event: EventRecord) => Promise<void>;
+  onUpdate?: (event: EventRecord) => Promise<void>;
   onCancel: () => void;
   saving: boolean;
+  existingEvent?: EventRecord;
 }) {
-  const [form, setForm] = useState<FormState>(emptyForm);
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([{ time: "", title: "", description: "" }]);
-  const [extraPrices, setExtraPrices] = useState<PriceItem[]>([]);
+  const isEditing = Boolean(existingEvent);
+
+  const [form, setForm] = useState<FormState>(() =>
+    existingEvent ? {
+      title: existingEvent.title,
+      date: existingEvent.date,
+      time: existingEvent.time,
+      location: existingEvent.location,
+      description: existingEvent.description,
+      entryPrice: String(existingEvent.entryPrice),
+      places: existingEvent.places > 0 ? String(existingEvent.places) : "",
+      visibility: existingEvent.visibility,
+    } : emptyForm,
+  );
+  const [schedule, setSchedule] = useState<ScheduleItem[]>(
+    existingEvent?.schedule.length ? existingEvent.schedule : [{ time: "", title: "", description: "" }],
+  );
+  const [extraPrices, setExtraPrices] = useState<PriceItem[]>(existingEvent?.extraPrices ?? []);
   const [activities, setActivities] = useState<string[]>([]);
   const [activityInput, setActivityInput] = useState("");
   const [error, setError] = useState("");
@@ -633,8 +669,8 @@ function CreateEventView({
 
     const places = form.places ? Number(form.places) : 0;
 
-    const createdEvent: EventRecord = {
-      id: createId(),
+    const eventData: EventRecord = {
+      id: existingEvent?.id ?? createId(),
       title: form.title.trim(),
       date: form.date,
       time: form.time.trim(),
@@ -649,7 +685,11 @@ function CreateEventView({
     };
 
     setError("");
-    await onCreate(createdEvent);
+    if (isEditing && onUpdate) {
+      await onUpdate(eventData);
+    } else if (onCreate) {
+      await onCreate(eventData);
+    }
   }
 
   return (
@@ -658,8 +698,8 @@ function CreateEventView({
         <Icon name="back" /> Annuler
       </button>
 
-      <div className="page-kicker">Nouvel événement</div>
-      <h2>Créer un événement</h2>
+      <div className="page-kicker">{isEditing ? "Modifier" : "Nouvel événement"}</div>
+      <h2>{isEditing ? "Modifier l'événement" : "Créer un événement"}</h2>
 
       {error ? <div className="form-error">{error}</div> : null}
 
@@ -799,7 +839,7 @@ function CreateEventView({
 
         <div className="form-actions">
           <button className="btn btn-primary" type="submit" disabled={saving}>
-            {saving ? "Publication..." : "Publier l'événement"}
+            {saving ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Publier l'événement"}
           </button>
           <button className="btn" type="button" onClick={onCancel}>
             Annuler
@@ -821,6 +861,7 @@ export default function App() {
   const [filter, setFilter] = useState<"all" | Visibility>("all");
   const [eventsError, setEventsError] = useState("");
   const [savingEvent, setSavingEvent] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<EventRecord | null>(null);
   const formatters = useFormatters();
 
   useEffect(() => {
@@ -946,6 +987,74 @@ export default function App() {
     setSelectedEventId(null);
   }
 
+  function openEdit(event: EventRecord) {
+    setEditingEvent(event);
+    setView("create");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function handleDelete(id: string) {
+    if (supabase) {
+      const { error } = await supabase.from("events").delete().eq("id", id);
+      if (error) { setEventsError(error.message); return; }
+    }
+    setEvents((current) => current.filter((e) => e.id !== id));
+    navigate("planning");
+  }
+
+  async function handleUpdate(event: EventRecord) {
+    setSavingEvent(true);
+
+    let nextEvent = event;
+
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("events")
+        .update({
+          title: event.title,
+          date: event.date,
+          time: event.time,
+          location: event.location,
+          description: event.description,
+          price: event.entryPrice,
+          extra_prices: event.extraPrices,
+          places: event.places,
+          visibility: event.visibility,
+          schedule: event.schedule,
+          activities: event.activities,
+        })
+        .eq("id", event.id)
+        .select("id, title, date, time, location, description, price, extra_prices, places, visibility, schedule, activities")
+        .single();
+
+      if (error) { setEventsError(error.message); setSavingEvent(false); return; }
+
+      if (data) {
+        nextEvent = {
+          id: String(data.id),
+          title: data.title ?? event.title,
+          date: data.date ?? event.date,
+          time: data.time ?? event.time,
+          location: data.location ?? event.location,
+          description: data.description ?? event.description,
+          entryPrice: Number(data.price ?? event.entryPrice),
+          extraPrices: Array.isArray(data.extra_prices) ? (data.extra_prices as PriceItem[]) : event.extraPrices,
+          places: Number(data.places ?? event.places),
+          visibility: (data.visibility ?? event.visibility) as Visibility,
+          schedule: Array.isArray(data.schedule) ? (data.schedule as ScheduleItem[]) : event.schedule,
+          activities: Array.isArray(data.activities) ? (data.activities as string[]) : event.activities,
+        };
+      }
+    }
+
+    setEvents((current) => current.map((e) => e.id === nextEvent.id ? nextEvent : e));
+    setSelectedEventId(nextEvent.id);
+    setEditingEvent(null);
+    setView("detail");
+    setSavingEvent(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function handleCreate(event: EventRecord) {
     setSavingEvent(true);
 
@@ -962,7 +1071,7 @@ export default function App() {
           description: event.description,
           price: event.entryPrice,
           extra_prices: event.extraPrices,
-          places: event.places > 0 ? event.places : null,
+          places: event.places,
           visibility: event.visibility,
           schedule: event.schedule,
           activities: event.activities,
@@ -1085,9 +1194,25 @@ export default function App() {
         />
       ) : null}
 
-      {view === "detail" ? <EventDetailView event={selectedEvent} onBack={() => navigate("planning")} longDateFormatter={formatters.longDate} /> : null}
+      {view === "detail" ? (
+        <EventDetailView
+          event={selectedEvent}
+          onBack={() => navigate("planning")}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+          longDateFormatter={formatters.longDate}
+        />
+      ) : null}
 
-      {view === "create" ? <CreateEventView onCreate={handleCreate} onCancel={() => navigate("planning")} saving={savingEvent} /> : null}
+      {view === "create" ? (
+        <CreateEventView
+          existingEvent={editingEvent ?? undefined}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onCancel={() => { setEditingEvent(null); navigate(editingEvent ? "detail" : "planning"); }}
+          saving={savingEvent}
+        />
+      ) : null}
 
       <footer className="footer wrap">
         <span>BDE Epitech Réunion</span>

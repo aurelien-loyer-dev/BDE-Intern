@@ -214,6 +214,28 @@ a {
   width: 100%;
 }
 
+.btn-danger {
+  border-color: #5a3a36;
+  color: var(--danger);
+}
+
+.btn-danger:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.detail-head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail-head-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .btn-small {
   padding: 8px 12px;
   font-size: 13.5px;
