@@ -316,8 +316,8 @@ function AuthScreen({
 
 function Navbar({ view, onNavigate, onLogout }: { view: View; onNavigate: (next: View) => void; onLogout: () => void }) {
   const items: Array<{ id: View; label: string }> = [
-    { id: "home", label: "Accueil" },
     { id: "planning", label: "Planning" },
+    { id: "home", label: "Accueil" },
   ];
 
   return (
@@ -822,7 +822,7 @@ export default function App() {
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [authLoading, setAuthLoading] = useState(hasSupabaseConfig);
   const [authError, setAuthError] = useState("");
-  const [view, setView] = useState<View>("home");
+  const [view, setView] = useState<View>("planning");
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | Visibility>("all");
