@@ -1,13 +1,13 @@
 :root {
-  --bg: #07091a;
-  --bg-elevated: #0c0f26;
-  --surface: #101330;
-  --surface-strong: #161a3a;
-  --border: #1c2050;
-  --border-strong: #272c60;
-  --text: #eef0ff;
-  --muted: #6875a8;
-  --muted-strong: #4d5888;
+  --bg: #0f0f0f;
+  --bg-elevated: #161616;
+  --surface: #1a1a1a;
+  --surface-strong: #222222;
+  --border: #2a2a2a;
+  --border-strong: #393939;
+  --text: #f2f2f2;
+  --muted: #8a8a8a;
+  --muted-strong: #6f6f6f;
   --accent: #ffd700;
   --accent-hover: #e6c000;
   --accent-soft: rgba(255, 215, 0, 0.14);
@@ -32,9 +32,7 @@ body,
 body {
   margin: 0;
   color: var(--text);
-  background:
-    radial-gradient(ellipse at top, rgba(255, 215, 0, 0.05) 0%, transparent 55%),
-    var(--bg);
+  background: var(--bg);
   font-family: "Plus Jakarta Sans", system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
