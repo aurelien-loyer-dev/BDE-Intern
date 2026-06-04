@@ -130,17 +130,12 @@ a {
 }
 
 .brand-mark {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: var(--accent);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-family: "Space Grotesk", system-ui, sans-serif;
-  font-weight: 700;
-  font-size: 15px;
+  object-fit: cover;
   flex: none;
+  display: block;
 }
 
 .brand-name {

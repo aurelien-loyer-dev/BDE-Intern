@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import { hasSupabaseConfig, supabase } from "./lib/supabase";
+import logoBDE from "./public/logoBDE.jpg";
 
 type View = "home" | "planning" | "detail" | "create";
 type Visibility = "public" | "prive";
@@ -263,7 +264,7 @@ function AuthScreen({
     <main className="auth-shell">
       <section className="auth-panel">
         <div className="brand-row">
-          <span className="brand-mark">B</span>
+          <img src={logoBDE} className="brand-mark" alt="Logo BDE" />
           <div>
             <div className="brand-name">BDE Epitech Réunion</div>
             <div className="brand-subtitle">Accès interne réservé aux membres autorisés</div>
@@ -318,7 +319,7 @@ function Navbar({ view, onNavigate, onLogout }: { view: View; onNavigate: (next:
     <header className="nav">
       <div className="wrap nav-inner">
         <button className="brand-button" type="button" onClick={() => onNavigate("home")}>
-          <span className="brand-mark">B</span>
+          <img src={logoBDE} className="brand-mark" alt="Logo BDE" />
           <span className="brand-name">BDE Epitech Réunion</span>
         </button>
 
@@ -364,8 +365,8 @@ function HomeView({ eventCount, featuredEvents, onOpenEvent, onNavigate, shortDa
               <span className="stat-label">événement(s) en base</span>
             </div>
             <div className="stat-card stat-card-soft">
-              <span className="stat-value">Supabase</span>
-              <span className="stat-label">auth et données à brancher ensuite</span>
+              <span className="stat-value">Espace membre</span>
+              <span className="stat-label">accès réservé</span>
             </div>
           </aside>
         </div>
@@ -519,9 +520,9 @@ function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRec
             <DetailStat icon={<Icon name="users" />} label="Places" value={`${event.places} disponibles`} />
 
             <button className="btn btn-primary btn-full detail-cta" type="button" disabled>
-              Inscription désactivée
+              Réservation fermée
             </button>
-            <p className="detail-note">Inscription non disponible pour le moment.</p>
+            <p className="detail-note">Les réservations ne sont pas ouvertes.</p>
           </div>
         </aside>
       </section>
@@ -979,13 +980,13 @@ export default function App() {
       <main className="auth-shell">
         <section className="auth-panel">
           <div className="brand-row">
-            <span className="brand-mark">B</span>
+            <img src={logoBDE} className="brand-mark" alt="Logo BDE" />
             <div>
               <div className="brand-name">BDE Epitech Réunion</div>
-              <div className="brand-subtitle">Chargement de la session...</div>
+              <div className="brand-subtitle">Chargement...</div>
             </div>
           </div>
-          <p>Connexion à Supabase en cours.</p>
+          <p>Chargement de l&apos;espace membre.</p>
         </section>
       </main>
     );
