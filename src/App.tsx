@@ -855,7 +855,7 @@ export default function App() {
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [authLoading, setAuthLoading] = useState(hasSupabaseConfig);
   const [authError, setAuthError] = useState("");
-  const [view, setView] = useState<View>("planning");
+  const [view, setView] = useState<View>("home");
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | Visibility>("all");
