@@ -581,8 +581,56 @@ a {
   border: 2px solid var(--accent);
 }
 
-.timeline-body p {
+.timeline-title {
   margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.timeline-desc {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.activities-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.activity-chip {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid rgba(124, 116, 232, 0.3);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.extra-prices {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.extra-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13.5px;
+}
+
+.extra-price-label {
+  color: var(--muted);
+}
+
+.extra-price-amount {
+  font-weight: 600;
   color: var(--text);
 }
 
@@ -817,6 +865,52 @@ a {
   font-size: 13.5px;
 }
 
+.schedule-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.schedule-card-header {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) 40px;
+  gap: 10px;
+  align-items: center;
+}
+
+.schedule-time-input {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-weight: 600;
+  text-align: center;
+}
+
+.schedule-desc-textarea {
+  margin-top: 10px;
+  min-height: 56px;
+}
+
+.price-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px 40px;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.price-amount-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.price-currency {
+  color: var(--muted);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
 .step-row {
   display: grid;
   grid-template-columns: 120px minmax(0, 1fr) 40px;
@@ -936,6 +1030,118 @@ a {
   font-size: 14px;
 }
 
+/* ─── Timeline titles ─── */
+.timeline-title {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14.5px;
+  margin: 0;
+}
+
+.timeline-desc {
+  color: var(--muted);
+  font-size: 13.5px;
+  margin: 3px 0 0;
+}
+
+/* ─── Activities ─── */
+.activities-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.activity-chip {
+  background: var(--accent-soft-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ─── Extra prices (detail view) ─── */
+.extra-prices {
+  border-top: 1px solid var(--border);
+  padding: 8px 0 4px;
+}
+
+.extra-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.extra-price-label {
+  font-size: 13px;
+  color: var(--muted);
+  padding-left: 46px;
+}
+
+.extra-price-amount {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ─── Registration form ─── */
+.register-form {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.register-form .field {
+  margin-bottom: 10px;
+}
+
+.register-form .field-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* ─── Registration success ─── */
+.register-success {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.register-success-check {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(80, 200, 120, 0.15);
+  border: 1px solid rgba(80, 200, 120, 0.35);
+  color: #50c878;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex: none;
+}
+
+.register-success-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.register-success-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
 @media (max-width: 920px) {
   .hero-grid,
   .detail-grid,
@@ -979,9 +1185,14 @@ a {
   .field-row-3,
   .step-row,
   .tag-input-row,
-  .segmented-control {
+  .segmented-control,
+  .price-row {
     grid-template-columns: 1fr;
     display: grid;
+  }
+
+  .schedule-card-header {
+    grid-template-columns: 80px minmax(0, 1fr) 40px;
   }
 
   .step-row {

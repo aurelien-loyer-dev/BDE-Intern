@@ -5,8 +5,14 @@ import logoBDE from "./public/logoBDE.jpg";
 type View = "home" | "planning" | "detail" | "create";
 type Visibility = "public" | "prive";
 
+type PriceItem = {
+  label: string;
+  amount: number;
+};
+
 type ScheduleItem = {
   time: string;
+  title: string;
   description: string;
 };
 
@@ -17,7 +23,8 @@ type EventRecord = {
   time: string;
   location: string;
   description: string;
-  price: number;
+  entryPrice: number;
+  extraPrices: PriceItem[];
   places: number;
   visibility: Visibility;
   schedule: ScheduleItem[];
@@ -30,7 +37,7 @@ type FormState = {
   time: string;
   location: string;
   description: string;
-  price: string;
+  entryPrice: string;
   places: string;
   visibility: Visibility;
 };
@@ -46,7 +53,7 @@ const emptyForm: FormState = {
   time: "",
   location: "",
   description: "",
-  price: "0",
+  entryPrice: "0",
   places: "",
   visibility: "public",
 };
@@ -212,8 +219,6 @@ function EventCard({
   onOpen: () => void;
   shortDateFormatter: Intl.DateTimeFormat;
 }) {
-  const remaining = event.places;
-
   return (
     <button className="event-card" type="button" onClick={onOpen}>
       <div className="card-top">
@@ -231,12 +236,12 @@ function EventCard({
         <div className="meta-row">
           <Icon name="clock" />
           <span>
-            {event.time || "À définir"} · {formatPrice(event.price)}
+            {event.time || "À définir"} · {formatPrice(event.entryPrice)}
           </span>
         </div>
         <div className="meta-row">
           <Icon name="users" />
-          <span className={`spots ${remaining <= 10 ? "low" : ""}`}>{remaining > 0 ? `${remaining} places disponibles` : "Complet"}</span>
+          <span className="spots">{event.places > 0 ? `${event.places} places` : "Places libres"}</span>
         </div>
       </div>
     </button>
@@ -449,6 +454,37 @@ function PlanningView({ events, filter, onFilterChange, onOpenEvent, shortDateFo
 }
 
 function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRecord | undefined; onBack: () => void; longDateFormatter: Intl.DateTimeFormat; }) {
+  const [showRegister, setShowRegister] = useState(false);
+  const [registered, setRegistered] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [registerError, setRegisterError] = useState("");
+  const [regForm, setRegForm] = useState({ firstName: "", lastName: "", email: "" });
+
+  async function handleRegister(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!regForm.firstName.trim() || !regForm.email.trim()) {
+      setRegisterError("Prénom et email requis.");
+      return;
+    }
+    setRegistering(true);
+    setRegisterError("");
+    if (supabase && event) {
+      const { error } = await supabase.from("registrations").insert({
+        event_id: event.id,
+        first_name: regForm.firstName.trim(),
+        last_name: regForm.lastName.trim(),
+        email: regForm.email.trim().toLowerCase(),
+      });
+      if (error) {
+        setRegisterError("Une erreur est survenue. Réessaie.");
+        setRegistering(false);
+        return;
+      }
+    }
+    setRegistered(true);
+    setRegistering(false);
+  }
+
   if (!event) {
     return (
       <section className="block">
@@ -481,29 +517,29 @@ function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRec
           <h3>À propos</h3>
           <p>{event.description || "Aucune description fournie."}</p>
 
-          <h3>Déroulé</h3>
+          <h3>Planning</h3>
           {event.schedule.length > 0 ? (
             <div className="timeline">
               {event.schedule.map((step, index) => (
                 <div className="timeline-item" key={`${step.time}-${index}`}>
                   <div className="timeline-time">{step.time || "--:--"}</div>
                   <div className="timeline-body">
-                    <p>{step.description || "Étape à définir."}</p>
+                    {step.title ? <p className="timeline-title">{step.title}</p> : null}
+                    {step.description ? <p className="timeline-desc">{step.description}</p> : null}
+                    {!step.title && !step.description ? <p className="timeline-desc">Étape à définir.</p> : null}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="empty-inline">Déroulé à compléter.</div>
+            <div className="empty-inline">Planning à compléter.</div>
           )}
 
-          <h3>Activités prévues</h3>
+          <h3>Activités</h3>
           {event.activities.length > 0 ? (
-            <div className="tags">
+            <div className="activities-grid">
               {event.activities.map((activity) => (
-                <span className="tag" key={activity}>
-                  {activity}
-                </span>
+                <span className="activity-chip" key={activity}>{activity}</span>
               ))}
             </div>
           ) : (
@@ -516,13 +552,59 @@ function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRec
             <DetailStat icon={<Icon name="calendar" />} label="Date" value={formatLongDate(event.date, longDateFormatter)} />
             <DetailStat icon={<Icon name="clock" />} label="Heure" value={event.time || "À définir"} />
             <DetailStat icon={<Icon name="pin" />} label="Lieu" value={event.location || "À définir"} />
-            <DetailStat icon={<Icon name="euro" />} label="Tarif" value={formatPrice(event.price)} valueClassName={event.price === 0 ? "price-free" : ""} />
-            <DetailStat icon={<Icon name="users" />} label="Places" value={`${event.places} disponibles`} />
+            <DetailStat icon={<Icon name="euro" />} label="Tarif d'entrée" value={formatPrice(event.entryPrice)} valueClassName={event.entryPrice === 0 ? "price-free" : ""} />
+            {event.extraPrices.length > 0 ? (
+              <div className="extra-prices">
+                {event.extraPrices.map((item, i) => (
+                  <div key={i} className="extra-price-row">
+                    <span className="extra-price-label">{item.label}</span>
+                    <span className="extra-price-amount">{formatPrice(item.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <DetailStat icon={<Icon name="users" />} label="Places" value={event.places > 0 ? `${event.places} disponibles` : "Non limité"} />
 
-            <button className="btn btn-primary btn-full detail-cta" type="button" disabled>
-              Réservation fermée
-            </button>
-            <p className="detail-note">Les réservations ne sont pas ouvertes.</p>
+            {registered ? (
+              <div className="register-success">
+                <div className="register-success-check">✓</div>
+                <div>
+                  <div className="register-success-title">Inscription confirmée !</div>
+                  <div className="register-success-sub">Tu recevras les informations par email.</div>
+                </div>
+              </div>
+            ) : showRegister ? (
+              <form className="register-form" onSubmit={handleRegister}>
+                {registerError ? <div className="form-error">{registerError}</div> : null}
+                <div className="field-row">
+                  <div className="field">
+                    <FieldLabel>Prénom <span className="req">*</span></FieldLabel>
+                    <input className="input" value={regForm.firstName} onChange={(e) => setRegForm((f) => ({ ...f, firstName: e.target.value }))} placeholder="Prénom" />
+                  </div>
+                  <div className="field">
+                    <FieldLabel>Nom</FieldLabel>
+                    <input className="input" value={regForm.lastName} onChange={(e) => setRegForm((f) => ({ ...f, lastName: e.target.value }))} placeholder="Nom" />
+                  </div>
+                </div>
+                <div className="field">
+                  <FieldLabel>Email <span className="req">*</span></FieldLabel>
+                  <input className="input" type="email" value={regForm.email} onChange={(e) => setRegForm((f) => ({ ...f, email: e.target.value }))} placeholder="prenom.nom@epitech.eu" />
+                </div>
+                <button className="btn btn-primary btn-full" type="submit" disabled={registering}>
+                  {registering ? "Inscription..." : "Confirmer l'inscription"}
+                </button>
+                <button className="btn btn-full" type="button" onClick={() => setShowRegister(false)} style={{ marginTop: 8 }}>
+                  Annuler
+                </button>
+              </form>
+            ) : (
+              <>
+                <button className="btn btn-primary btn-full detail-cta" type="button" onClick={() => setShowRegister(true)}>
+                  S&apos;inscrire
+                </button>
+                <p className="detail-note">Les inscriptions sont ouvertes.</p>
+              </>
+            )}
           </div>
         </aside>
       </section>
@@ -540,7 +622,8 @@ function CreateEventView({
   saving: boolean;
 }) {
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([{ time: "", description: "" }]);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([{ time: "", title: "", description: "" }]);
+  const [extraPrices, setExtraPrices] = useState<PriceItem[]>([]);
   const [activities, setActivities] = useState<string[]>([]);
   const [activityInput, setActivityInput] = useState("");
   const [error, setError] = useState("");
@@ -554,7 +637,21 @@ function CreateEventView({
   }
 
   function addScheduleStep() {
-    setSchedule((current) => [...current, { time: "", description: "" }]);
+    setSchedule((current) => [...current, { time: "", title: "", description: "" }]);
+  }
+
+  function addExtraPrice() {
+    setExtraPrices((current) => [...current, { label: "", amount: 0 }]);
+  }
+
+  function updateExtraPrice(index: number, key: keyof PriceItem, value: string) {
+    setExtraPrices((current) =>
+      current.map((item, i) => i === index ? { ...item, [key]: key === "amount" ? Number(value) || 0 : value } : item),
+    );
+  }
+
+  function removeExtraPrice(index: number) {
+    setExtraPrices((current) => current.filter((_, i) => i !== index));
   }
 
   function removeScheduleStep(index: number) {
@@ -590,12 +687,7 @@ function CreateEventView({
       return;
     }
 
-    const places = Number(form.places);
-
-    if (!Number.isFinite(places) || places <= 0) {
-      setError("Indiquez un nombre de places valide.");
-      return;
-    }
+    const places = form.places ? Number(form.places) : 0;
 
     const createdEvent: EventRecord = {
       id: createId(),
@@ -604,10 +696,11 @@ function CreateEventView({
       time: form.time.trim(),
       location: form.location.trim(),
       description: form.description.trim(),
-      price: Number(form.price) || 0,
+      entryPrice: Number(form.entryPrice) || 0,
+      extraPrices,
       places,
       visibility: form.visibility,
-      schedule: schedule.filter((step) => step.time.trim() || step.description.trim()),
+      schedule: schedule.filter((step) => step.time.trim() || step.title.trim() || step.description.trim()),
       activities,
     };
 
@@ -649,8 +742,8 @@ function CreateEventView({
           </div>
 
           <div className="field">
-            <FieldLabel>Places <span className="req">*</span></FieldLabel>
-            <input className="input" type="number" min="1" value={form.places} onChange={(event) => updateField("places", event.target.value)} placeholder="50" />
+            <FieldLabel>Places</FieldLabel>
+            <input className="input" type="number" min="0" value={form.places} onChange={(event) => updateField("places", event.target.value)} placeholder="Illimité" />
           </div>
         </div>
 
@@ -671,8 +764,8 @@ function CreateEventView({
 
         <div className="field-row">
           <div className="field">
-            <FieldLabel>Tarif (€)</FieldLabel>
-            <input className="input" type="number" min="0" value={form.price} onChange={(event) => updateField("price", event.target.value)} />
+            <FieldLabel>Tarif d'entrée (€)</FieldLabel>
+            <input className="input" type="number" min="0" value={form.entryPrice} onChange={(event) => updateField("entryPrice", event.target.value)} />
             <div className="field-hint">Mettez 0 pour un événement gratuit.</div>
           </div>
 
@@ -692,16 +785,41 @@ function CreateEventView({
         </div>
 
         <fieldset className="fieldset">
-          <legend>Déroulé</legend>
-          <p>Ajoutez les étapes de l&apos;événement, heure par heure.</p>
+          <legend>Tarifs supplémentaires</legend>
+          <p>Billetterie, boissons, goodies…</p>
 
-          {schedule.map((step, index) => (
-            <div className="step-row" key={index}>
-              <input className="input" placeholder="Heure" value={step.time} onChange={(event) => updateSchedule(index, "time", event.target.value)} />
-              <input className="input" placeholder="Description de l'étape" value={step.description} onChange={(event) => updateSchedule(index, "description", event.target.value)} />
-              <button className="icon-button" type="button" onClick={() => removeScheduleStep(index)} disabled={schedule.length === 1} aria-label="Supprimer une étape">
+          {extraPrices.map((item, index) => (
+            <div className="price-row" key={index}>
+              <input className="input" placeholder="Label (ex : T-shirt BDE)" value={item.label} onChange={(e) => updateExtraPrice(index, "label", e.target.value)} />
+              <div className="price-amount-wrap">
+                <input className="input" type="number" min="0" placeholder="0" value={item.amount || ""} onChange={(e) => updateExtraPrice(index, "amount", e.target.value)} />
+                <span className="price-currency">€</span>
+              </div>
+              <button className="icon-button" type="button" onClick={() => removeExtraPrice(index)} aria-label="Supprimer">
                 <Icon name="trash" />
               </button>
+            </div>
+          ))}
+
+          <button className="btn btn-small" type="button" onClick={addExtraPrice}>
+            <Icon name="plus" /> Ajouter un tarif
+          </button>
+        </fieldset>
+
+        <fieldset className="fieldset">
+          <legend>Planning</legend>
+          <p>Construisez le déroulé de votre événement, étape par étape.</p>
+
+          {schedule.map((step, index) => (
+            <div className="schedule-card" key={index}>
+              <div className="schedule-card-header">
+                <input className="input schedule-time-input" placeholder="00:00" value={step.time} onChange={(event) => updateSchedule(index, "time", event.target.value)} />
+                <input className="input" placeholder="Titre de l'étape (ex : Accueil)" value={step.title} onChange={(event) => updateSchedule(index, "title", event.target.value)} />
+                <button className="icon-button" type="button" onClick={() => removeScheduleStep(index)} disabled={schedule.length === 1} aria-label="Supprimer">
+                  <Icon name="trash" />
+                </button>
+              </div>
+              <textarea className="textarea schedule-desc-textarea" placeholder="Détails optionnels…" value={step.description} onChange={(event) => updateSchedule(index, "description", event.target.value)} />
             </div>
           ))}
 
@@ -811,7 +929,7 @@ export default function App() {
     async function loadEvents() {
       const { data, error } = await client
         .from("events")
-        .select("id, title, date, time, location, description, price, places, visibility, schedule, activities")
+        .select("id, title, date, time, location, description, price, extra_prices, places, visibility, schedule, activities")
         .order("date", { ascending: true });
 
       if (!active) {
@@ -833,7 +951,8 @@ export default function App() {
           time: row.time ?? "",
           location: row.location ?? "",
           description: row.description ?? "",
-          price: Number(row.price ?? 0),
+          entryPrice: Number(row.price ?? 0),
+          extraPrices: Array.isArray(row.extra_prices) ? (row.extra_prices as PriceItem[]) : [],
           places: Number(row.places ?? 0),
           visibility: (row.visibility ?? "public") as Visibility,
           schedule: Array.isArray(row.schedule) ? (row.schedule as ScheduleItem[]) : [],
@@ -897,13 +1016,14 @@ export default function App() {
           time: event.time,
           location: event.location,
           description: event.description,
-          price: event.price,
+          price: event.entryPrice,
+          extra_prices: event.extraPrices,
           places: event.places,
           visibility: event.visibility,
           schedule: event.schedule,
           activities: event.activities,
         })
-        .select("id, title, date, time, location, description, price, places, visibility, schedule, activities")
+        .select("id, title, date, time, location, description, price, extra_prices, places, visibility, schedule, activities")
         .single();
 
       if (error) {
@@ -920,7 +1040,8 @@ export default function App() {
           time: data.time ?? event.time,
           location: data.location ?? event.location,
           description: data.description ?? event.description,
-          price: Number(data.price ?? event.price),
+          entryPrice: Number(data.price ?? event.entryPrice),
+          extraPrices: Array.isArray(data.extra_prices) ? (data.extra_prices as PriceItem[]) : event.extraPrices,
           places: Number(data.places ?? event.places),
           visibility: (data.visibility ?? event.visibility) as Visibility,
           schedule: Array.isArray(data.schedule) ? (data.schedule as ScheduleItem[]) : event.schedule,
