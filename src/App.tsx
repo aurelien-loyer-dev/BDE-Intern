@@ -271,7 +271,6 @@ function AuthScreen({
         </div>
 
         <h1>Connexion</h1>
-        <p>{hasSupabaseConfig ? "Connexion Supabase active pour l'auth et la lecture des événements." : "Ajoutez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY pour activer Supabase, sinon le mode local reste disponible."}</p>
 
         {error ? <div className="form-error">{error}</div> : null}
 
@@ -520,9 +519,9 @@ function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRec
             <DetailStat icon={<Icon name="users" />} label="Places" value={`${event.places} disponibles`} />
 
             <button className="btn btn-primary btn-full detail-cta" type="button" disabled>
-              {hasSupabaseConfig ? "Inscription Supabase à brancher" : "Inscription désactivée"}
+              Inscription désactivée
             </button>
-            <p className="detail-note">{hasSupabaseConfig ? "Le parcours d'inscription viendra ensuite côté Supabase." : "Ajoute les clés Supabase pour activer le parcours d'inscription plus tard."}</p>
+            <p className="detail-note">Inscription non disponible pour le moment.</p>
           </div>
         </aside>
       </section>
@@ -1032,7 +1031,7 @@ export default function App() {
 
       <footer className="footer wrap">
         <span>BDE Epitech Réunion</span>
-        <span>{hasSupabaseConfig ? "Supabase connecté" : "Mode local"} · {events.length} événement(s)</span>
+        <span>{events.length} événement(s)</span>
       </footer>
     </div>
   );
