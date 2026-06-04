@@ -1,4 +1,5 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
+import { hasSupabaseConfig, supabase } from "./lib/supabase";
 
 type View = "home" | "planning" | "detail" | "create";
 type Visibility = "public" | "prive";
@@ -185,11 +186,11 @@ function Badge({ visibility }: { visibility: Visibility }) {
   );
 }
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
+function FieldLabel({ children }: { children: ReactNode }) {
   return <label className="field-label">{children}</label>;
 }
 
-function DetailStat({ icon, label, value, valueClassName }: { icon: React.ReactNode; label: string; value: string; valueClassName?: string }) {
+function DetailStat({ icon, label, value, valueClassName }: { icon: ReactNode; label: string; value: string; valueClassName?: string }) {
   return (
     <div className="detail-stat">
       <span className="detail-stat-icon">{icon}</span>
@@ -241,29 +242,21 @@ function EventCard({
   );
 }
 
-function AuthScreen({ onAuthenticate }: { onAuthenticate: (email: string) => void }) {
+function AuthScreen({
+  onAuthenticate,
+  error,
+  isLoading,
+}: {
+  onAuthenticate: (email: string, password: string) => Promise<void>;
+  error: string;
+  isLoading: boolean;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const normalizedEmail = email.trim().toLowerCase();
-
-    if (!normalizedEmail || !password.trim()) {
-      setError("Email et mot de passe requis.");
-      return;
-    }
-
-    if (allowedEmails.length > 0 && !allowedEmails.includes(normalizedEmail)) {
-      setError("Cet email n'est pas encore autorisé pour le BDE.");
-      return;
-    }
-
-    setError("");
-    // TODO: remplacer par Supabase auth et validation de la whitelist côté base.
-    onAuthenticate(normalizedEmail);
+    await onAuthenticate(email, password);
   }
 
   return (
@@ -278,9 +271,7 @@ function AuthScreen({ onAuthenticate }: { onAuthenticate: (email: string) => voi
         </div>
 
         <h1>Connexion</h1>
-        <p>
-          Les appels d&apos;authentification sont encore simulés. La whitelist Supabase viendra remplacer ce formulaire plus tard.
-        </p>
+        <p>{hasSupabaseConfig ? "Connexion Supabase active pour l'auth et la lecture des événements." : "Ajoutez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY pour activer Supabase, sinon le mode local reste disponible."}</p>
 
         {error ? <div className="form-error">{error}</div> : null}
 
@@ -309,8 +300,8 @@ function AuthScreen({ onAuthenticate }: { onAuthenticate: (email: string) => voi
             />
           </div>
 
-          <button className="btn btn-primary btn-full" type="submit">
-            Se connecter
+          <button className="btn btn-primary btn-full" type="submit" disabled={isLoading}>
+            {isLoading ? "Connexion..." : "Se connecter"}
           </button>
         </form>
       </section>
@@ -529,9 +520,9 @@ function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRec
             <DetailStat icon={<Icon name="users" />} label="Places" value={`${event.places} disponibles`} />
 
             <button className="btn btn-primary btn-full detail-cta" type="button" disabled>
-              Inscription à brancher
+              {hasSupabaseConfig ? "Inscription Supabase à brancher" : "Inscription désactivée"}
             </button>
-            <p className="detail-note">Le parcours d&apos;inscription viendra plus tard côté Supabase.</p>
+            <p className="detail-note">{hasSupabaseConfig ? "Le parcours d'inscription viendra ensuite côté Supabase." : "Ajoute les clés Supabase pour activer le parcours d'inscription plus tard."}</p>
           </div>
         </aside>
       </section>
@@ -542,9 +533,11 @@ function EventDetailView({ event, onBack, longDateFormatter }: { event: EventRec
 function CreateEventView({
   onCreate,
   onCancel,
+  saving,
 }: {
-  onCreate: (event: EventRecord) => void;
+  onCreate: (event: EventRecord) => Promise<void>;
   onCancel: () => void;
+  saving: boolean;
 }) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([{ time: "", description: "" }]);
@@ -584,7 +577,7 @@ function CreateEventView({
     setActivities((current) => current.filter((_, activityIndex) => activityIndex !== index));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!form.title.trim()) {
@@ -619,7 +612,7 @@ function CreateEventView({
     };
 
     setError("");
-    onCreate(createdEvent);
+    await onCreate(createdEvent);
   }
 
   return (
@@ -743,8 +736,8 @@ function CreateEventView({
         </fieldset>
 
         <div className="form-actions">
-          <button className="btn btn-primary" type="submit">
-            Publier l'événement
+          <button className="btn btn-primary" type="submit" disabled={saving}>
+            {saving ? "Publication..." : "Publier l'événement"}
           </button>
           <button className="btn" type="button" onClick={onCancel}>
             Annuler
@@ -757,11 +750,104 @@ function CreateEventView({
 
 export default function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [authLoading, setAuthLoading] = useState(hasSupabaseConfig);
+  const [authError, setAuthError] = useState("");
   const [view, setView] = useState<View>("home");
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | Visibility>("all");
+  const [eventsError, setEventsError] = useState("");
+  const [savingEvent, setSavingEvent] = useState(false);
   const formatters = useFormatters();
+
+  useEffect(() => {
+    if (!supabase) {
+      setAuthLoading(false);
+      return;
+    }
+
+    const client = supabase;
+
+    let active = true;
+
+    async function loadSession() {
+      const { data, error } = await client.auth.getSession();
+
+      if (!active) {
+        return;
+      }
+
+      if (error) {
+        setAuthError(error.message);
+      }
+
+      setUserEmail(data.session?.user.email ?? null);
+      setAuthLoading(false);
+    }
+
+    const { data } = client.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user.email ?? null);
+      setAuthLoading(false);
+    });
+
+    loadSession();
+
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
+    const client = supabase;
+
+    let active = true;
+
+    async function loadEvents() {
+      const { data, error } = await client
+        .from("events")
+        .select("id, title, date, time, location, description, price, places, visibility, schedule, activities")
+        .order("date", { ascending: true });
+
+      if (!active) {
+        return;
+      }
+
+      if (error) {
+        setEventsError(error.message);
+        setEvents([]);
+        return;
+      }
+
+      setEventsError("");
+      setEvents(
+        (data ?? []).map((row) => ({
+          id: String(row.id),
+          title: row.title ?? "Sans titre",
+          date: row.date ?? "",
+          time: row.time ?? "",
+          location: row.location ?? "",
+          description: row.description ?? "",
+          price: Number(row.price ?? 0),
+          places: Number(row.places ?? 0),
+          visibility: (row.visibility ?? "public") as Visibility,
+          schedule: Array.isArray(row.schedule) ? (row.schedule as ScheduleItem[]) : [],
+          activities: Array.isArray(row.activities) ? (row.activities as string[]) : [],
+        })),
+      );
+    }
+
+    loadEvents();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const sortedEvents = useMemo(
     () => [...events].sort((left, right) => left.date.localeCompare(right.date)),
@@ -787,26 +873,138 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function logout() {
+  async function logout() {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+
     setUserEmail(null);
     setView("home");
     setSelectedEventId(null);
   }
 
-  function handleCreate(event: EventRecord) {
-    setEvents((current) => [event, ...current]);
-    setSelectedEventId(event.id);
+  async function handleCreate(event: EventRecord) {
+    setSavingEvent(true);
+
+    let nextEvent = event;
+
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("events")
+        .insert({
+          title: event.title,
+          date: event.date,
+          time: event.time,
+          location: event.location,
+          description: event.description,
+          price: event.price,
+          places: event.places,
+          visibility: event.visibility,
+          schedule: event.schedule,
+          activities: event.activities,
+        })
+        .select("id, title, date, time, location, description, price, places, visibility, schedule, activities")
+        .single();
+
+      if (error) {
+        setEventsError(error.message);
+        setSavingEvent(false);
+        return;
+      }
+
+      if (data) {
+        nextEvent = {
+          id: String(data.id),
+          title: data.title ?? event.title,
+          date: data.date ?? event.date,
+          time: data.time ?? event.time,
+          location: data.location ?? event.location,
+          description: data.description ?? event.description,
+          price: Number(data.price ?? event.price),
+          places: Number(data.places ?? event.places),
+          visibility: (data.visibility ?? event.visibility) as Visibility,
+          schedule: Array.isArray(data.schedule) ? (data.schedule as ScheduleItem[]) : event.schedule,
+          activities: Array.isArray(data.activities) ? (data.activities as string[]) : event.activities,
+        };
+      }
+    }
+
+    setEvents((current) => [nextEvent, ...current]);
+    setSelectedEventId(nextEvent.id);
     setView("detail");
+    setSavingEvent(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  async function handleAuthenticate(email: string, password: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    setAuthError("");
+
+    if (!normalizedEmail || !password.trim()) {
+      setAuthError("Email et mot de passe requis.");
+      return;
+    }
+
+    setAuthSubmitting(true);
+
+    if (supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+
+      if (error) {
+        setAuthError(error.message);
+        setAuthSubmitting(false);
+        return;
+      }
+
+      setUserEmail(data.user?.email ?? data.session?.user.email ?? normalizedEmail);
+      setAuthSubmitting(false);
+      return;
+    }
+
+    if (allowedEmails.length > 0 && !allowedEmails.includes(normalizedEmail)) {
+      setAuthError("Cet email n'est pas encore autorisé pour le BDE.");
+      setAuthSubmitting(false);
+      return;
+    }
+
+    setUserEmail(normalizedEmail);
+    setAuthSubmitting(false);
+  }
+
+  if (authLoading) {
+    return (
+      <main className="auth-shell">
+        <section className="auth-panel">
+          <div className="brand-row">
+            <span className="brand-mark">B</span>
+            <div>
+              <div className="brand-name">BDE Epitech Réunion</div>
+              <div className="brand-subtitle">Chargement de la session...</div>
+            </div>
+          </div>
+          <p>Connexion à Supabase en cours.</p>
+        </section>
+      </main>
+    );
+  }
+
   if (!userEmail) {
-    return <AuthScreen onAuthenticate={setUserEmail} />;
+    return <AuthScreen onAuthenticate={handleAuthenticate} error={authError} isLoading={authSubmitting} />;
   }
 
   return (
     <div className="app-shell">
       <Navbar view={view} onNavigate={navigate} onLogout={logout} />
+
+      {eventsError ? (
+        <div className="wrap" style={{ paddingTop: 18 }}>
+          <div className="form-error">{eventsError}</div>
+        </div>
+      ) : null}
 
       {view === "home" ? (
         <HomeView
@@ -830,11 +1028,11 @@ export default function App() {
 
       {view === "detail" ? <EventDetailView event={selectedEvent} onBack={() => navigate("planning")} longDateFormatter={formatters.longDate} /> : null}
 
-      {view === "create" ? <CreateEventView onCreate={handleCreate} onCancel={() => navigate("planning")} /> : null}
+      {view === "create" ? <CreateEventView onCreate={handleCreate} onCancel={() => navigate("planning")} saving={savingEvent} /> : null}
 
       <footer className="footer wrap">
         <span>BDE Epitech Réunion</span>
-        <span>{events.length} événement(s) en préparation</span>
+        <span>{hasSupabaseConfig ? "Supabase connecté" : "Mode local"} · {events.length} événement(s)</span>
       </footer>
     </div>
   );
